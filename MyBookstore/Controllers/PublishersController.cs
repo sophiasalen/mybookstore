@@ -1,17 +1,49 @@
-﻿using System;
+﻿using MyBookstore.App_Code;
+using MyBookstore.Models;
+using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
 namespace MyBookstore.Controllers
 {
+    
+
     public class PublishersController : Controller
     {
+        [HttpGet]
         // GET: Publishers
         public ActionResult Index()
         {
-            return View();
+            List<PublishersModels> list = new List<PublishersModels>();
+            using (SqlConnection con = new SqlConnection(Helper.GetCon()))
+              {
+                con.Open();
+                string query = @"SELECT pubID, pubName
+                                FROM publishers ";
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                    {
+                        using (DataTable dt = new DataTable())
+                        {
+                            da.Fill(dt);
+                            foreach (DataRow row in dt.Rows)
+                            {
+                                var publisher = new PublishersModels();
+                                publisher.ID = Convert.ToInt32(row["pubID"].ToString());
+                                publisher.Name = row["pubName"].ToString();
+                                
+                                list.Add(publisher);
+                            }
+                        }
+                    }
+                }
+            }
+            return View(list);
         }
 
         // GET: Publishers/Details/5
